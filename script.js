@@ -43,7 +43,6 @@ const pools = [
   { name: "Chiswick Baths (Parramatta River)", lat: -33.850000, lng: 151.140000},
   { name: "Dawn Fraser Baths, Balmain", lat: -33.856095, lng: 151.170644}
 ];
-];
 
 // 'visited' is a map: { [poolName]: true|false }. We default to an empty object when nothing is saved yet.
 let visited = JSON.parse(localStorage.getItem(LS_KEYS.VISITED) || '{}');
@@ -121,7 +120,7 @@ function renderList(){
     row.innerHTML = `
       <div>
         <div class="pool-name">${p.name}</div>
-        <div class="coords">${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}</div>
+        <div class="coords">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
       </div>
       <button class="stamp-chip ${visited[p.name] ? 'stamped':''}" 
         data-name="${p.name}">${visited[p.name] ? 'Stamped' : 'Not yet'}</button>`;
@@ -191,9 +190,9 @@ function highlightSelected(){
 // Map using Leaflet
 // === MAP INITIALIZATION (Leaflet) ===
 // Create a map bound to #map, set initial center to first pool with a sane zoom (14).
-const map = L.map('map').setView([pools[0].lat, pools[0].lon], 14);
+const map = L.map('map').setView([pools[0].lat, pools[0].lng], 14);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map); // free OSM tiles
-const marker = L.marker([pools[0].lat, pools[0].lon]).addTo(map); // one marker we move around (cheaper than re-creating)
+const marker = L.marker([pools[0].lat, pools[0].lng]).addTo(map); // one marker we move around (cheaper than re-creating)
 
 /**
  * panToSelected() — move the marker and recenter the map on the current selection.
@@ -201,8 +200,8 @@ const marker = L.marker([pools[0].lat, pools[0].lon]).addTo(map); // one marker 
  */
 function panToSelected(){
   const p = pools[selectedIndex];
-  marker.setLatLng([p.lat, p.lon]).bindPopup(p.name);
-    map.setView([p.lat, p.lon], 15, {animate:true}); // could switch to flyTo for smoother animation
+  marker.setLatLng([p.lat, p.lng]).bindPopup(p.name);
+    map.setView([p.lat, p.lng], 15, {animate:true}); // could switch to flyTo for smoother animation
 }
 
 /**
@@ -220,7 +219,7 @@ function renderPassport(popName=null){
     card.className = 'passport';
     card.innerHTML = `
       <div class="title">${p.name}</div>
-      <div class="hint">${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}</div>
+      <div class="hint">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
       <div class="stamp ${popName===p.name?'pop':''}" style="${stamped?'opacity:.98':'opacity:.45; filter:grayscale(1)'}">
         <img src="assets/stamp.svg" alt="stamp">
         <div class="label">${stamped ? p.name.split(' ')[0].toUpperCase() : 'NOT STAMPED'}</div>
