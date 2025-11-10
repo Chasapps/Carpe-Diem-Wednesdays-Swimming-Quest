@@ -27,11 +27,21 @@ const LS_KEYS = { VISITED:'harbour_pools_visited_v2_3', SELECTION:'harbour_pools
 // Canonical list of pools. This is our single source of truth for content.
 // Adding/removing a pool here automatically affects both list and passport views.
 const pools = [
-  {name:'Woolwich Baths', lat:-33.83914, lon:151.16943},
-  {name:'Northbridge Baths', lat:-33.80637, lon:151.22233},
-  {name:'Greenwich Baths', lat:-33.84102, lon:151.18341},
-  {name:'Dawn Fraser Baths', lat:-33.85354, lon:151.17325},
-  {name:'Clontarf Beach Baths', lat:-33.80680, lon:151.25121},
+ { name: "Parsley Bay Swimming Enclosure, Vaucluse", lat: -33.852746, lng: 151.278041 },
+  { name: "Nielsen Park – Shark Beach, Vaucluse", lat: -33.850846, lng: 151.268571},
+  { name: "Watsons Bay Baths, Watsons Bay", lat: -33.844243, lng: 151.281703},
+  { name: "Murray Rose Pool (Redleaf), Double Bay", lat: -33.872072, lng: 151.247724},
+  { name: "Marrinawi Cove, Barangaroo", lat: -33.859000, lng: 151.199000},
+  { name: "Maccallum Seawater Pool, Cremorne Point", lat: -33.845320, lng: 151.228080},
+  { name: "Balmoral Baths, Mosman", lat: -33.825413, lng: 151.251602},
+  { name: "Clifton Gardens (Chowder Bay) netted enclosure, Mosman", lat: -33.842110, lng: 151.247550},
+  { name: "Northbridge Baths, Sailors Bay", lat: -33.806626, lng: 151.221141},
+  { name: "Greenwich Baths, Greenwich", lat: -33.841520, lng: 151.182880},
+  { name: "Little Manly Cove tidal/netted pool, Manly", lat: -33.806764, lng: 151.286668},
+  { name: "Forty Baskets Beach netted enclosure, Balgowlah", lat: -33.802309, lng: 151.269516},
+  { name: "Woolwich Baths (Lane Cove River)", lat: -33.840300, lng: 151.170200},
+  { name: "Chiswick Baths (Parramatta River)", lat: -33.850000, lng: 151.140000},
+  { name: "Dawn Fraser Baths, Balmain", lat: -33.856095, lng: 151.170644}
 ];
 
 // 'visited' is a map: { [poolName]: true|false }. We default to an empty object when nothing is saved yet.
