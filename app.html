@@ -1,0 +1,99 @@
+<!--
+================================================================================
+HARBOUR POOLS APP SHELL (v2.3)  *ULTRA-DETAILED ANNOTATED*
+================================================================================
+PURPOSE
+- Provides a two-view UI: (1) List + Map split view; (2) Passport (stamps) view.
+- Wires Leaflet map container and UI controls. JavaScript orchestrates everything
+  via script.js, which reads/writes to localStorage and updates the DOM.
+
+BEGINNER CONCEPTS
+- Roles & responsibilities: HTML = structure, CSS = look/feel, JS = behavior.
+- Accessible controls: buttons with clear labels/titles, badges for counts.
+- Progressive enhancement: if JS fails, layout still shows basic content regions.
+- External resource loading: Google Fonts, Leaflet CSS/JS (why we need both).
+
+STRUCTURE
+- header.glass  : sticky toolbars w/ title, live count, primary actions
+- main > listView: controls (Up/Down), scrollable pool list, map panel w/ toggle
+- main > passportView: grid of “passport” cards
+- scripts at end: Leaflet + app logic
+================================================================================
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Harbour Pools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <!-- Project stylesheet: component styles, layout grid, tokens. -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- HEADER: sticky toolbar with live progress and actions -->
+  <header class="glass">
+        <!-- Titlebar clusters brand (left), live count (center), actions (right) -->
+    <div class="titlebar">
+            <!-- Brand mark + app title. The gradient dot is a simple, lightweight “logo”. -->
+      <div class="brand">
+        <div class="dot"></div><h1>Harbour Pools</h1>
+      </div>
+            <!-- Live count badge: updated via JS using visited stamps. -->
+      <span id="countBadge" class="badge">0 / 0</span>
+            <!-- Primary actions: toggle view; reset stamps (with confirm). -->
+      <div class="actions">
+        <button id="toggleBtn" class="pill primary">Passport</button>
+        <button id="resetBtn" class="pill ghost">Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN: switches active view by toggling the .active class on section.view -->
+  <main>
+        <!-- LIST VIEW: split between scrollable list and interactive Leaflet map. -->
+    <section id="listView" class="view active">
+            <!-- Keyboard-like controls: ▲/▼ change the selected row (also available via keys). -->
+      <div class="controls">
+        <button id="btnUp" title="Previous" class="pill">▲</button>
+        <button id="btnDown" title="Next" class="pill">▼</button>
+      </div>
+      <div class="content-split">
+                <!-- The JS populates this DIV with .pool-item rows based on pools[] data. -->
+        <div id="poolList" class="scroll-list card"></div>
+                <!-- Map panel: holds the Leaflet map and the floating map mode toggle button. -->
+        <div class="map-wrap card">
+                    <!-- Leaflet attaches an interactive map canvas into this element. -->
+          <div id="map"></div>
+          <button id="mapToggle" class="map-toggle pill" aria-pressed="false">🗺️ Full Map</button>
+        </div>
+      </div>
+    </section>
+
+        <!-- PASSPORT VIEW: card grid showing a decorative “stamp” per pool; populated via JS. -->
+    <section id="passportView" class="view">
+      <h2 class="subtitle">Summer Quest Passport</h2>
+      <div id="passportGrid" class="passport-grid"></div>
+      <p class="hint">Your stamps are saved to this device.</p>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- App orchestration: data, localStorage, map control, rendering. -->
+  <script src="script.js"></script>
+</body>
+</html>
+
+<!--
+================================================================================
+ULTRA KEY TAKEAWAYS (APP SHELL)
+1) Use clear IDs for JS hooks (#poolList, #map, #passportGrid) instead of query-heavy selectors.
+2) Keep both views in DOM; toggle visibility with classes to avoid reload/state churn.
+3) Put feature-critical JS at the end of <body> to avoid blocking first paint.
+4) Provide obvious, labeled buttons for the most common actions (toggle view, reset).
+5) Design for keyboard + mouse + touch; the ▲/▼ buttons mirror arrow-key navigation.
+================================================================================
+-->

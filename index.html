@@ -1,0 +1,116 @@
+<!--
+================================================================================
+WADS SUMMER QUEST — SPLASH (v2.3)  *ULTRA-DETAILED ANNOTATED*
+================================================================================
+PURPOSE
+- Presents a branded, tappable splash screen.
+- Opens the main app via redirect (same tab) or, if REDIRECT_URL is null in JS,
+  embeds app.html inside an <iframe> for an "in-page" experience.
+
+BEGINNER CONCEPTS EXPLAINED
+- <meta viewport> for mobile scaling, favicon/theme-color basics.
+- "Tap anywhere to open" pattern: one event, multiple accessibility affordances.
+- Redirect vs. iframe trade-offs (history, isolation, state reset).
+- Small CSS animation keyframes and when to prefer CSS over JS for performance.
+- Keyboard accessibility: Enter/Space = click equivalent on focused region.
+- Why avoid large inline scripts in production (but okay for teaching/demo).
+
+STRUCTURE OVERVIEW
+- <style> — minimal, self-contained theme to keep index.html portable.
+- <section id="splash"> — the tappable, focusable region with imagery/text.
+- <script> — openApp() that transitions out and either redirects or injects an iframe.
+================================================================================
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WADS Summer Quest — Splash</title>
+<meta name="theme-color" content="#f06a1f">
+<!-- CSS: Self-contained splash visuals and the fade-out animation. -->
+<style>
+  :root{
+    --orange:#f06a1f;
+    --blue:#0f5f99;
+    --yellow:#f4c027;
+    --ink:#0c2b3a;
+  }
+  html,body{height:100%;margin:0}
+  body{font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;background:var(--orange);color:#042436;}
+  #splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:min(2.8vh,22px);padding:clamp(12px,3vw,28px);cursor:pointer;user-select:none;background:var(--orange);}
+  .title{margin-top:min(2vh,16px);text-align:center;line-height:1.0;letter-spacing:1px;color:var(--blue);text-shadow:0 2px 0 rgba(0,0,0,.08);font-weight:900;font-size:clamp(28px,7.5vw,72px);}
+  .title .line2{color:var(--yellow);display:block;margin-top:.1em}
+  .stage{position:relative;width:min(1100px,94vw);aspect-ratio:3/4;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);background:#fff3;outline:4px solid rgba(0,0,0,.06);}
+  .stage img{width:100%;height:100%;object-fit:cover;display:block;}
+  .tap{color:#042436;opacity:.92;font-weight:800;background:rgba(255,255,255,.7);padding:.45em .85em;border-radius:999px;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:clamp(12px,2.8vw,18px);}
+  .hint{font-size:12px;opacity:.8}
+  .fade{animation:fadeout .35s ease forwards}
+  @keyframes fadeout{to{opacity:0;visibility:hidden}}
+</style>
+</head>
+<body>
+<!-- Body contains only the splash and the tiny boot script. Keeping it minimal reduces network requests on first paint. -->
+<!-- Splash is a single, large hit-area so users can tap anywhere. It doubles as an accessible focusable region via keyboard handlers below. -->
+<section id="splash" aria-label="WADS Summer Quest splash" title="Tap to open the app">
+  <h1 class="title">WADS <span class="line2">SUMMER QUEST</span></h1>
+  <div class="stage">
+    <img src="assets/turkey_swimsuit.png" alt="Brush-turkey in old-fashioned blue and yellow striped swimsuit" />
+    <div class="tap">Tap anywhere to open app</div>
+  </div>
+  <div class="hint">(Opens your app in the same tab)</div>
+</section>
+<!-- Boot script: openApp() handles both redirect and iframe-embed modes. -->
+<script>
+  // CONFIG: Choose navigation strategy.
+// - Redirect (default): replaces the current page with the app. Pros: clean URL, simpler memory profile,
+//   'Back' exits the app like a normal site.
+// - Embed (set to null): keeps this page and inserts an <iframe> with the app. Pros: easy "Exit to splash"
+//   by removing the iframe; cons: nested browsing context, indirect focus management.
+const REDIRECT_URL = 'app.html'; // set to null to embed instead of redirect
+  const splash = document.getElementById('splash');
+  // Single entry-point for all activation methods (click/tap/keyboard).
+// Keep this tiny and predictable: 1) add visual feedback, 2) navigate or embed.
+function openApp(){
+        // 1) Start a CSS fade-out. CSS animations are offloaded to the compositor for smoother performance.
+    splash.classList.add('fade');
+    setTimeout(()=>{
+            if(REDIRECT_URL){
+        // 2a) Simple navigation. Important: this resets app state (fresh start) and clears any JavaScript memory leaks.
+        window.location.href = REDIRECT_URL;
+      }
+            else {
+        // 2b) Embed mode: build an iframe at runtime. This keeps the splash document alive under the app.
+        // If you set REDIRECT_URL = null, we will dynamically create an iframe showing your app.
+        const iframe = document.createElement('iframe');
+        iframe.src = 'app.html';
+        iframe.title = 'WADS App';
+                // A minimal full-viewport embed with a white background to avoid the splash gradient showing through.
+        iframe.style.cssText = 'border:0;width:100%;height:100vh;display:block;background:#fff;';
+                // Clear splash markup to ensure screen-readers won't encounter duplicate landmarks and to free DOM memory.
+        document.body.innerHTML='';
+        document.body.appendChild(iframe);
+      }
+    }, 200);
+  }
+  // Pointer input: mouse/touch
+  splash.addEventListener('click', openApp);
+  // Keyboard activation: Enter or Space is a conventional 'activate' gesture for focused regions.
+// We check the actual key values for clarity. (Note: Space on some UAs fires ' ' not 'Spacebar')
+splash.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' || e.key===' '){ openApp(); }
+});
+</script>
+</body>
+</html>
+
+<!--
+================================================================================
+ULTRA KEY TAKEAWAYS (SPLASH)
+1) One activation path: unify click/tap/keyboard → call the same function.
+2) Redirect resets app state; iframe keeps parent alive for "Exit to splash".
+3) CSS animations (opacity/transform) are typically smoother than JS-driven ones.
+4) Large click-area improves usability; text still guides ("Tap anywhere").
+5) For production, consider removing inline CSS/JS for caching and CSP security.
+================================================================================
+-->
