@@ -1,6 +1,31 @@
+/*
+================================================================================
+APP LOGIC (v2.3)  *ULTRA-DETAILED ANNOTATED*
+================================================================================
+WHAT THIS FILE CONTROLS
+- Data/state: the list of pools, which ones are stamped (visited), which row is selected.
+- Persistence: saves "visited" and "selected index" to localStorage so your progress is
+  kept between reloads or browser restarts on the same device.
+- Rendering: builds the scrollable list and passport grid from JS templates.
+- Mapping: initializes Leaflet, moves the marker, pans/zooms to selection.
+- Interaction: buttons (up/down/toggle/reset), keyboard navigation, full-map mode.
+
+BEGINNER REMINDERS
+- localStorage values are *strings* → JSON.stringify/parse for objects.
+- DOM event listeners: attach once on load; for repeated rows use e.currentTarget.
+- Guard state updates with modulo arithmetic to keep indices safe.
+- Re-rendering small lists is OK. Optimize later only if needed.
+
+TIP: Read top → bottom; functions are grouped by purpose (count/view, list, stamps, map, passport, init).
+================================================================================
+*/
 // v2.3 'Pretty' with animations and polished UI
+// Stable keys for localStorage. Changing these strings will "reset" stored progress
+// since the browser would then look up different keys.
 const LS_KEYS = { VISITED:'harbour_pools_visited_v2_3', SELECTION:'harbour_pools_selected_v2_3' };
 
+// Canonical list of pools. This is our single source of truth for content.
+// Adding/removing a pool here automatically affects both list and passport views.
 const pools = [
   {name:'Woolwich Baths', lat:-33.83914, lon:151.16943},
   {name:'Northbridge Baths', lat:-33.80637, lon:151.22233},
@@ -9,52 +34,77 @@ const pools = [
   {name:'Clontarf Beach Baths', lat:-33.80680, lon:151.25121},
 ];
 
+// 'visited' is a map: { [poolName]: true|false }. We default to an empty object when nothing is saved yet.
 let visited = JSON.parse(localStorage.getItem(LS_KEYS.VISITED) || '{}');
+// Selected row index. We coerce to a number. Note: we clamp later via modulo logic when selecting.
 let selectedIndex = Number(localStorage.getItem(LS_KEYS.SELECTION) || 0);
 
+// === DOM REFERENCES (cache once; re-use) ===
 const listView = document.getElementById('listView');
-const passportView = document.getElementById('passportView');
-const toggleBtn = document.getElementById('toggleBtn');
-const resetBtn = document.getElementById('resetBtn');
-const countBadge = document.getElementById('countBadge');
-const mapToggle = document.getElementById('mapToggle');
+const passportView = document.getElementById('passportView'); // Hidden by default until toggled
+const toggleBtn = document.getElementById('toggleBtn');         // Switch between list and passport
+const resetBtn = document.getElementById('resetBtn');           // Clear all stamps (with confirm)
+const countBadge = document.getElementById('countBadge');       // Shows 'N / total'
+const mapToggle = document.getElementById('mapToggle');         // Full map vs split view
 
+/**
+ * updateCount() — Derives progress from data and writes it to the badge.
+ * Pure read from 'visited'; no side-effects other than DOM text update.
+ */
 function updateCount(){
   const n = Object.values(visited).filter(Boolean).length;
   countBadge.textContent = `${n} / ${pools.length}`;
 }
 
+// Track which view is currently shown; used to set proper button label and classes.
 let onPassport = false;
+/**
+ * setView(passport: boolean) — Switch between list and passport views.
+ * Also ensures we exit full-map mode when changing views (so state is consistent).
+ * We also invalidate the map size after a short delay to let CSS finish transitions.
+ */
 function setView(passport){
   onPassport = passport;
+    // Always exit full-map when switching views so the UI remains predictable.
   document.body.classList.remove('full-map');
   listView.classList.toggle('active', !passport);
   passportView.classList.toggle('active', passport);
-  toggleBtn.textContent = passport ? 'Back to List' : 'Passport';
+    toggleBtn.textContent = passport ? 'Back to List' : 'Passport'; // accessible label reflects current action
   if(passport) renderPassport();
+    // Leaflet needs a nudge after containers change size/visibility.
   setTimeout(()=>map.invalidateSize(), 150);
 }
-toggleBtn.addEventListener('click', ()=> setView(!onPassport));
+// Action: Toggle between views
+ toggleBtn.addEventListener('click', ()=> setView(!onPassport));
 
+// Action: Reset stamps with a guard confirmation to prevent accidental loss.
 resetBtn.addEventListener('click', ()=>{
   if(!confirm('Clear all stamps?')) return;
-  visited = {};
+    visited = {}; // Simply clear the map; renders will interpret falsy as 'not stamped'
   localStorage.setItem(LS_KEYS.VISITED, JSON.stringify(visited));
   renderList(); renderPassport(); updateCount();
 });
 
 // Full map toggle
+// Action: Full map toggle. We store the state as a body class for CSS to consume.
 mapToggle.addEventListener('click', ()=>{
   const fm = document.body.classList.toggle('full-map');
   mapToggle.textContent = fm ? '📋 Back to Split' : '🗺️ Full Map';
   mapToggle.setAttribute('aria-pressed', fm ? 'true' : 'false');
+    // Invalidate map tile layout, then pan to ensure the selected marker is centered in the new layout.
   setTimeout(()=>{ map.invalidateSize(); panToSelected(); }, 150);
 });
 
+/**
+ * renderList() — Regenerates the list UI from the pools[] array and current 'visited' map.
+ * For a small list this "rebuild each time" approach is simplest and very fast.
+ * If you scale up to hundreds of rows, consider diffing/patching or virtualization.
+ */
 function renderList(){
   const list = document.getElementById('poolList');
   list.innerHTML = '';
   pools.forEach((p, idx) => {
+        // Build one row (div) with name/coords and a 'stamp-chip' button on the right.
     const row = document.createElement('div');
     row.className = 'pool-item';
     row.innerHTML = `
@@ -65,11 +115,13 @@ function renderList(){
       <button class="stamp-chip ${visited[p.name] ? 'stamped':''}" 
         data-name="${p.name}">${visited[p.name] ? 'Stamped' : 'Not yet'}</button>`;
 
+        // Click anywhere on the row except the chip selects the row for map centering.
     row.addEventListener('click', (e)=>{
       const t = e.target;
       if(t && t.classList && t.classList.contains('stamp-chip')) return;
       selectIndex(idx);
     });
+        // Clicking the chip toggles visited status. We stop propagation so the row itself isn't selected.
     row.querySelector('.stamp-chip').addEventListener('click', (e)=>{
       e.stopPropagation();
       const name = e.currentTarget.getAttribute('data-name');
@@ -77,44 +129,77 @@ function renderList(){
     });
     list.appendChild(row);
   });
+    // After rebuilding, apply a class to the selected row for visual feedback.
   highlightSelected();
   updateCount();
 }
 
+/**
+ * toggleStamp(name: string, animate = false)
+ * - Flips the visited status for a given pool name.
+ * - Persists to localStorage.
+ * - Rerenders list + passport (optionally animating the affected stamp).
+ */
 function toggleStamp(name, animate=false){
   visited[name] = !visited[name];
   localStorage.setItem(LS_KEYS.VISITED, JSON.stringify(visited));
   renderList();
-  renderPassport(animate ? name : null);
+    renderPassport(animate ? name : null); // pass the name so CSS can pop the changed stamp
 }
 
+/**
+ * selectIndex(idx: number) — Safe selection with wrap-around via modulo.
+ * Also persists to localStorage so selection survives reload.
+ */
 function selectIndex(idx){
   selectedIndex = (idx + pools.length) % pools.length;
   localStorage.setItem(LS_KEYS.SELECTION, String(selectedIndex));
+    // After rebuilding, apply a class to the selected row for visual feedback.
   highlightSelected();
   panToSelected();
 }
 
+/**
+ * moveSelection(step: -1|+1) — convenience wrapper used by ▲/▼ buttons.
+ */
 function moveSelection(step){ selectIndex(selectedIndex + step); }
-document.getElementById('btnUp').addEventListener('click', ()=>moveSelection(-1));
-document.getElementById('btnDown').addEventListener('click', ()=>moveSelection(1));
+// Controls: ▲ moves up (previous row)
+ document.getElementById('btnUp').addEventListener('click', ()=>moveSelection(-1));
+// Controls: ▼ moves down (next row)
+ document.getElementById('btnDown').addEventListener('click', ()=>moveSelection(1));
 
+/**
+ * highlightSelected() — Adds/removes .row-selected to visually mark the active row.
+ * This is separate from selection so we can call it after re-render easily.
+ */
 function highlightSelected(){
   const rows = Array.from(document.querySelectorAll('#poolList .pool-item'));
   rows.forEach((el,i)=> el.classList.toggle('row-selected', i===selectedIndex));
 }
 
 // Map using Leaflet
+// === MAP INITIALIZATION (Leaflet) ===
+// Create a map bound to #map, set initial center to first pool with a sane zoom (14).
 const map = L.map('map').setView([pools[0].lat, pools[0].lon], 14);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
-const marker = L.marker([pools[0].lat, pools[0].lon]).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map); // free OSM tiles
+const marker = L.marker([pools[0].lat, pools[0].lon]).addTo(map); // one marker we move around (cheaper than re-creating)
 
+/**
+ * panToSelected() — move the marker and recenter the map on the current selection.
+ * Also binds a small popup with the pool's name for context.
+ */
 function panToSelected(){
   const p = pools[selectedIndex];
   marker.setLatLng([p.lat, p.lon]).bindPopup(p.name);
-  map.setView([p.lat, p.lon], 15, {animate:true});
+    map.setView([p.lat, p.lon], 15, {animate:true}); // could switch to flyTo for smoother animation
 }
 
+/**
+ * renderPassport(popName?: string)
+ * - Rebuilds the grid of 'passport' cards from pools[] and current visited map.
+ * - Each card includes a decorative SVG stamp; when not visited we desaturate it.
+ * - If popName matches, add a temporary .pop class to micro-animate that stamp.
+ */
 function renderPassport(popName=null){
   const grid = document.getElementById('passportGrid');
   grid.innerHTML = '';
@@ -133,6 +218,11 @@ function renderPassport(popName=null){
   });
 }
 
+/**
+ * init() — App entry point after DOM is ready. Sets up initial render and map.
+ * Note the 150ms timeout: this is a pragmatic delay to allow CSS/layout to settle
+ * before invalidating the map size (Leaflet reads container size on that call).
+ */
 function init(){
   renderList();
   selectIndex(selectedIndex);
@@ -140,4 +230,17 @@ function init(){
   setView(false);
   updateCount();
 }
+// Defer initialization until DOMContentLoaded so all containers exist.
 document.addEventListener('DOMContentLoaded', init);
+
+/*
+================================================================================
+ULTRA KEY TAKEAWAYS (LOGIC)
+1) Keep one source of truth (pools[] + visited + selectedIndex). Derive UI from it.
+2) Write small, single-purpose functions (renderList, renderPassport, panToSelected).
+3) Persist user intent early (localStorage) so accidental reloads don't lose progress.
+4) Invalidate Leaflet after container changes (visibility/size) to avoid blank tiles.
+5) Treat re-rendering small lists as acceptable. Optimize only when a profiler demands it.
+6) Name things explicitly; comments explain *why*, not just *what*.
+================================================================================
+*/
