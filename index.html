@@ -6,32 +6,23 @@
   <title>Carpe Diem Passport — Tonia Norton</title>
   <meta name="theme-color" content="#091938">
   <link rel="stylesheet" href="style.css">
-  <!--
-    CLASSIC PASSPORT SPLASH (v2)
-    - Uses the user's new crest PNG (with "CARPE DIEM MERCURI") without any overlays.
-    - Heavier linen/leather texture on the navy cover.
-    - Embossed-foil "Tonia Norton" title using layered gradients + shadows.
-    - Crest colours are gently shifted to harmonise with the passport palette.
-  -->
 </head>
 <body class="splash-body">
   <section class="splash" aria-label="Passport cover">
     <div class="cover">
-      <!-- Embossed foil title -->
-      <h1 class="owner foil-emboss" aria-label="Owner name">Tonia Norton</h1>
-
-      <!-- New crest image (no overlay text) -->
+      <!-- Foil-embossed name rendered in HTML (not baked into image) -->
+      <h1 class="owner foil-emboss">Tonia Norton</h1>
       <figure class="crest-wrap">
-        <img src="Carpe-Diem.png" alt="Carpe Diem Mercuri crest" class="crest crest-toned">
+        <img src="Carpe_Diem.png" alt="Carpe Diem Mercuri crest" class="crest" loading="eager" decoding="sync">
       </figure>
-
-      <button id="enterBtn" class="btn gold" aria-label="Enter app">Enter</button>
-      
+      <button id="enterBtn" class="btn gold">Enter</button>
     </div>
   </section>
 
   <script>
+    // Ensure app is entered from splash
     document.getElementById('enterBtn').addEventListener('click', () => {
+      try { sessionStorage.setItem('enteredViaSplash','1'); } catch(e){}
       window.location.href = 'app.html';
     });
   </script>

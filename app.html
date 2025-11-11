@@ -9,6 +9,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
+  <script>
+    (function(){
+      try {
+        const entered = sessionStorage.getItem('enteredViaSplash');
+        if(!entered){
+          window.location.replace('index.html');
+        } else {
+          sessionStorage.removeItem('enteredViaSplash');
+        }
+      } catch(e){}
+    })();
+  </script>
 </head>
 <body>
   <header class="glass">
@@ -18,9 +30,9 @@
       </div>
       <span id="countBadge" class="badge">0 / 0</span>
       <div class="actions">
-        <button id="toggleBtn" class="pill primary" title="Toggle Passport/List">Passport</button>
-        <button id="resetBtn" class="pill ghost" title="Reset stamps">Reset</button>
-        <a href="index.html" class="pill ghost" title="Back to passport">Exit</a>
+        <button id="toggleBtn" class="pill primary">Passport</button>
+        <button id="resetBtn" class="pill ghost">Reset</button>
+        <a href="index.html" class="pill ghost">Exit</a>
       </div>
     </div>
   </header>
@@ -28,8 +40,8 @@
   <main>
     <section id="listView" class="view active">
       <div class="controls">
-        <button id="btnUp" title="Previous" class="pill">▲</button>
-        <button id="btnDown" title="Next" class="pill">▼</button>
+        <button id="btnUp" class="pill">▲</button>
+        <button id="btnDown" class="pill">▼</button>
       </div>
       <div class="content-split">
         <div id="poolList" class="scroll-list card"></div>
