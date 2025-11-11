@@ -3,25 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Carpe Diem Passport — Tonia Norton</title>
-  <meta name="theme-color" content="#091938">
+  <title>Carpe Diem Passport — Splash</title>
+  <meta name="theme-color" content="#0C2231">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="splash-body">
-  <section class="splash" aria-label="Passport cover">
-    <div class="cover">
-      <!-- Foil-embossed name rendered in HTML (not baked into image) -->
-      <h1 class="owner foil-emboss">Tonia Norton</h1>
-      <figure class="crest-wrap">
-        <img src="Carpe_Diem.png" alt="Carpe Diem Mercuri crest" class="crest" loading="eager" decoding="sync">
-      </figure>
-      <button id="enterBtn" class="btn gold">Enter</button>
-    </div>
-  </section>
-
+<body class="splash-body" id="splashBody">
+  <div class="splash-overlay">
+    <h1 class="foil-emboss owner-name">Tonia Norton</h1>
+  </div>
   <script>
-    // Ensure app is entered from splash
-    document.getElementById('enterBtn').addEventListener('click', () => {
+    document.getElementById('splashBody').addEventListener('click', () => {
       try { sessionStorage.setItem('enteredViaSplash','1'); } catch(e){}
       window.location.href = 'app.html';
     });
