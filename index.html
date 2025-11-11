@@ -4,33 +4,33 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Carpe Diem Passport — Tonia Norton</title>
-  <meta name="theme-color" content="#0a1b3a">
+  <meta name="theme-color" content="#091938">
   <link rel="stylesheet" href="style.css">
   <!--
-    CLASSIC PASSPORT SPLASH (with linen/leather texture)
-    - Deep navy cover, gold lettering
-    - Crest recoloured via CSS filter + lower ribbon overlay "MERCURI"
-    - Enter button navigates to app.html
+    CLASSIC PASSPORT SPLASH (v2)
+    - Uses the user's new crest PNG (with "CARPE DIEM MERCURI") without any overlays.
+    - Heavier linen/leather texture on the navy cover.
+    - Embossed-foil "Tonia Norton" title using layered gradients + shadows.
+    - Crest colours are gently shifted to harmonise with the passport palette.
   -->
 </head>
 <body class="splash-body">
   <section class="splash" aria-label="Passport cover">
-    <div class="cover" role="img" aria-label="Navy passport cover with gold text">
-      <div class="owner" aria-label="Owner name">TONIA NORTON</div>
+    <div class="cover">
+      <!-- Embossed foil title -->
+      <h1 class="owner foil-emboss" aria-label="Owner name">Tonia Norton</h1>
 
-      <div class="crest-wrap">
-        <img src="Carpe-Diem.png" alt="Carpe Diem crest" class="crest" />
-        <span class="ribbon-overlay" aria-hidden="false">MERCURI</span>
-      </div>
+      <!-- New crest image (no overlay text) -->
+      <figure class="crest-wrap">
+        <img src="Carpe-Diem.png" alt="Carpe Diem Mercuri crest" class="crest crest-toned">
+      </figure>
 
-      <button id="enterBtn" class="btn gold" aria-label="Enter the app">Enter</button>
-
-      <p class="tiny-note">Carpe Diem Mercuri</p>
+      <button id="enterBtn" class="btn gold" aria-label="Enter app">Enter</button>
+      <p class="tiny-note">Classic passport cover • textured navy</p>
     </div>
   </section>
 
   <script>
-    // Navigate to the main program page.
     document.getElementById('enterBtn').addEventListener('click', () => {
       window.location.href = 'app.html';
     });
