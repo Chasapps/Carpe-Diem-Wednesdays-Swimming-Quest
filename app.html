@@ -13,11 +13,8 @@
     (function(){
       try {
         const entered = sessionStorage.getItem('enteredViaSplash');
-        if(!entered){
-          window.location.replace('index.html');
-        } else {
-          sessionStorage.removeItem('enteredViaSplash');
-        }
+        if(!entered){ window.location.replace('index.html'); }
+        else { sessionStorage.removeItem('enteredViaSplash'); }
       } catch(e){}
     })();
   </script>
@@ -25,9 +22,7 @@
 <body>
   <header class="glass">
     <div class="titlebar">
-      <div class="brand">
-        <div class="dot"></div><h1>Harbour Pools</h1>
-      </div>
+      <div class="brand"><div class="dot"></div><h1>Harbour Pools</h1></div>
       <span id="countBadge" class="badge">0 / 0</span>
       <div class="actions">
         <button id="toggleBtn" class="pill primary">Passport</button>
@@ -36,7 +31,6 @@
       </div>
     </div>
   </header>
-
   <main>
     <section id="listView" class="view active">
       <div class="controls">
@@ -51,14 +45,12 @@
         </div>
       </div>
     </section>
-
     <section id="passportView" class="view">
       <h2 class="subtitle">Summer Quest Passport</h2>
       <div id="passportGrid" class="passport-grid"></div>
       <p class="hint">Your stamps are saved to this device.</p>
     </section>
   </main>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="script.js"></script>
 </body>
