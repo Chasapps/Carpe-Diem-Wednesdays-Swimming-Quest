@@ -1,31 +1,37 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>WADS Summer Quest — Splash</title>
-  <meta name="theme-color" content="#0f5f99">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Carpe Diem Passport — Tonia Norton</title>
+  <meta name="theme-color" content="#0a1b3a">
   <link rel="stylesheet" href="style.css">
-  <style>
-    .splash{position:fixed;inset:0;display:grid;place-items:center;background:#0f5f99;}
-    .splash .card{background:#fff;border-radius:18px;padding:20px;max-width:520px;width:90vw;text-align:center;box-shadow:0 10px 30px #0003}
-    .splash img{max-width:360px;width:80%;height:auto;display:block;margin:0 auto 14px auto}
-    .splash h1{margin:8px 0 12px 0}
-    .splash p{margin:0 0 14px 0;color:#345}
-    .primary{background:#0f5f99;color:#fff;border:none;padding:10px 16px;border-radius:12px;cursor:pointer}
-  </style>
+  <!--
+    CLASSIC PASSPORT SPLASH (with linen/leather texture)
+    - Deep navy cover, gold lettering
+    - Crest recoloured via CSS filter + lower ribbon overlay "MERCURI"
+    - Enter button navigates to app.html
+  -->
 </head>
-<body>
-  <div class="splash">
-    <div class="card">
-      <img src="assets/Carpe-Diem.png" alt="Carpe Diem crest">
-      <h1>Carpe Diem Wednesdays</h1>
-      <p>Sydney Harbour Pools — Passport & Map</p>
-      <button id="enterBtn" class="primary">Enter</button>
+<body class="splash-body">
+  <section class="splash" aria-label="Passport cover">
+    <div class="cover" role="img" aria-label="Navy passport cover with gold text">
+      <div class="owner" aria-label="Owner name">TONIA NORTON</div>
+
+      <div class="crest-wrap">
+        <img src="Carpe-Diem.png" alt="Carpe Diem crest" class="crest" />
+        <span class="ribbon-overlay" aria-hidden="false">MERCURI</span>
+      </div>
+
+      <button id="enterBtn" class="btn gold" aria-label="Enter the app">Enter</button>
+
+      <p class="tiny-note">Carpe Diem Mercuri</p>
     </div>
-  </div>
+  </section>
+
   <script>
-    document.getElementById('enterBtn').addEventListener('click', function(){
+    // Navigate to the main program page.
+    document.getElementById('enterBtn').addEventListener('click', () => {
       window.location.href = 'app.html';
     });
   </script>
